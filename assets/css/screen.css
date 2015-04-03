@@ -1,0 +1,14 @@
+table.reversi {
+    border-collapse: collapse;
+    border: 5px solid black;
+    margin-right: 20px;
+}
+table.reversi td {
+  border:         5px solid black;
+  cursor:         pointer;
+  width:          1.3em;
+  height:         1.3em;
+  text-align:     center;
+  vertical-align: middle;
+  font:           bold 36px sans-serif
+}
