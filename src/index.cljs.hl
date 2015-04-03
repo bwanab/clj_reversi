@@ -1,12 +1,17 @@
 (page "index.html"
       (:require [reversi :as r]))
 
-(defc new-game [[{:text ""} {:text ""} {:text ""} {:text ""} ]
-                [{:text ""} {:text "b"} {:text "w"} {:text ""}]
-                [{:text ""} {:text "w"} {:text "b"} {:text ""}]
-                [{:text ""} {:text ""} {:text ""} {:text ""}]])
+;; (defc new-game [[{:text ""} {:text ""} {:text ""} {:text ""} ]
+;;                 [{:text ""} {:text "b"} {:text "w"} {:text ""}]
+;;                 [{:text ""} {:text "w"} {:text "b"} {:text ""}]
+;;                 [{:text ""} {:text ""} {:text ""} {:text ""}]])
 
-(defn copy-game [] (vec (for [row @new-game] (vec (for [c row] c)))))
+(def new-game [[r/emp r/emp r/emp r/emp]
+               [r/emp r/black r/white r/emp]
+               [r/emp r/white r/black r/emp]
+               [r/emp r/emp r/emp r/emp]])
+
+(defn copy-game [] (vec (for [row new-game] (vec (for [c row] c)))))
 (defc game (copy-game))
 
 (def indexed (partial map-indexed vector))
@@ -14,8 +19,16 @@
 (defn reset-game! []
   (reset! game (copy-game)))
 
-(defn play! [i j c]
-  (swap! game assoc-in [i j :text] c))
+(defn play! [[i j] c]
+  (let [lm (r/find-legal-moves @game c)
+        s [i j]
+        p (if (= c r/black) r/white 'b)]
+    (do
+      (swap! game r/update-board (cons s (get lm s)) c)
+      (let [m (r/find-legal-moves @game p)]
+        (if (not (empty? m))
+          (let [fm (first (r/find-best-move @game m))]
+            (swap! game r/update-board (cons fm (get m fm)) p)))))))
 
 (html
  (head
@@ -24,6 +37,6 @@
   (body
    (table :class "reversi"
           (loop-tpl :bindings [[i row] (cell= (indexed game))]
-                    ( tr (loop-tpl :bindings [[j {x :text}] (cell= (indexed row))]
-                                   (td :on-click #(play! @i @j 'b) (text "~{x}"))))))
+                    ( tr (loop-tpl :bindings [[j x] (cell= (indexed row))]
+                                   (td :on-click #(play! [@i @j] 'b) (text "~{x}"))))))
    (button :on-click reset-game! "new game")))

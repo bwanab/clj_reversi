@@ -1,0 +1,82 @@
+(ns reversi)
+
+(def emp '.)
+(def black 'b)
+(def white 'w)
+
+(def find-legal-moves
+  (fn [d p]
+    (let [boardsize (count d)]
+      (letfn [(find-pieces-for-player [d p]
+               (let [a (for [r (range boardsize)] (for [c (range boardsize) :when (= (get-in d [r c]) p)] [r c]))]
+                 (->> a flatten (partition 2))))
+             (find-adj [d [r c]]
+               (let [a (for [rr (range (dec r) (+ 2 r))]
+                         (for [cc (range (dec c) (+ 2 c))
+                               :when (not (or (< rr 0)
+                                              (< cc 0)
+                                              (> rr (dec boardsize))
+                                              (> cc (dec boardsize))
+                                              (and (= cc c) (= rr r))))] [rr cc]))]
+                 (->> a flatten (partition 2))))
+             (find-all-moves [d p]
+               (let [m (set (find-pieces-for-player d (if (= p white) black white)))
+                     empty (find-pieces-for-player d emp)
+                     lm (for [e empty] (for [l (find-adj d e) :when (contains? m l)] [e l]))]
+                 (->> lm flatten (partition 2) (partition 2) set)))
+             (find-line [d [sr1 sc1] [ir ic] p]
+               (let [mp (if (= p white) black white)]
+                 (loop [[sr sc] [(+ sr1 ir) (+ sc1 ic)] a []]
+                   (let [n (get-in d [sr sc])]
+                     (cond
+                      (= n mp) (recur [(+ sr ir) (+ sc ic)] (cons [sr sc] a))
+                      (= n p) [[sr1 sc1] (set a)]
+                      :else [])))))]
+        (reduce (fn [m [k v]]
+                  (assoc m k (if (contains? m k)
+                               (set (concat (get m k) v))
+                               v)))
+                {}
+                (for [m (find-all-moves d p)
+                      :let [[[er ec] [lr lc]] m
+                            ir (- lr er)
+                            ic (- lc ec)
+                            a (find-line d [er ec] [ir ic] p)]
+                      :when (not (empty? a))] a ))))))
+
+(defn printboard [d]
+  (doseq [r d] (println r)))
+
+(defn update-board [d m p]
+  (printboard d)
+  (println m)
+  (reduce (fn [dd e] (assoc-in dd e p)) d m))
+
+(defn score [d [[r c] v]]
+  (let [s (count d)]
+    [(+ (count v) (if (or (and (= r 0) (or (= c 0) (= c (dec s))))
+                         (and (= r (dec s)) (or (= c 0) (= c (dec s)))))
+                   2 0)) [[r c] v]]))
+
+(defn find-best-move [d m]
+  (let [s (map #(score d %) m)]
+    (->> s (sort #(compare (first %2) (first %1))) first second)))
+
+(defn g []
+  (loop [d '[[e e e e]
+             [e b w e]
+             [e w b e]
+             [e e e e]]]
+    (printboard d)
+    (let [lm (find-legal-moves d black)]
+      (println lm)
+      (let [s (read-string (read-line))
+            dd (update-board d (cons s (get lm s)) black)
+            m (find-legal-moves dd white)]
+        (if (not (empty? m))
+          (let [fm (first (find-best-move dd m))]
+            (do
+              (printboard dd)
+              (println "fm = " fm)
+              (recur (update-board dd (cons fm (get m fm)) white))))
+          (recur dd))))))
