@@ -48,8 +48,8 @@
   (doseq [r d] (println r)))
 
 (defn update-board [d m p]
-  (printboard d)
-  (println m)
+  ;; (printboard d)
+  ;; (println m)
   (reduce (fn [dd e] (assoc-in dd e p)) d m))
 
 (defn score [d [[r c] v]]
@@ -62,21 +62,21 @@
   (let [s (map #(score d %) m)]
     (->> s (sort #(compare (first %2) (first %1))) first second)))
 
-(defn g []
-  (loop [d '[[e e e e]
-             [e b w e]
-             [e w b e]
-             [e e e e]]]
-    (printboard d)
-    (let [lm (find-legal-moves d black)]
-      (println lm)
-      (let [s (read-string (read-line))
-            dd (update-board d (cons s (get lm s)) black)
-            m (find-legal-moves dd white)]
-        (if (not (empty? m))
-          (let [fm (first (find-best-move dd m))]
-            (do
-              (printboard dd)
-              (println "fm = " fm)
-              (recur (update-board dd (cons fm (get m fm)) white))))
-          (recur dd))))))
+;; (defn g []
+;;   (loop [d '[[e e e e]
+;;              [e b w e]
+;;              [e w b e]
+;;              [e e e e]]]
+;;     (printboard d)
+;;     (let [lm (find-legal-moves d black)]
+;;       (println lm)
+;;       (let [s (read-string (read-line))
+;;             dd (update-board d (cons s (get lm s)) black)
+;;             m (find-legal-moves dd white)]
+;;         (if (not (empty? m))
+;;           (let [fm (first (find-best-move dd m))]
+;;             (do
+;;               (printboard dd)
+;;               (println "fm = " fm)
+;;               (recur (update-board dd (cons fm (get m fm)) white))))
+;;           (recur dd))))))
