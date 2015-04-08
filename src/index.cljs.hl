@@ -42,9 +42,9 @@
       (let [m (r/find-legal-moves @game p)]
         (if (not (empty? m))
           (let [fm (first (r/find-best-move @game m))]
-            (do (swap! game r/update-board (cons fm (get m fm)) p)
-                (reset! whitescore (count (filter #(= % r/white) (flatten @game))))
-                (reset! blackscore (count (filter #(= % r/black) (flatten @game)))))))))))
+            (do (swap! game r/update-board (cons fm (get m fm)) p)))))
+      (reset! whitescore (count (filter #(= % r/white) (flatten @game))))
+      (reset! blackscore (count (filter #(= % r/black) (flatten @game)))))))
 
 (html
  (head
