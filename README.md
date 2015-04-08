@@ -1,6 +1,6 @@
-# hop-test
+# reversi
 
-A Hoplon project designed to...well, that part is up to you.
+A Hoplon project designed to play a simple game of reversi
 
 ## Dependencies
 
@@ -16,13 +16,13 @@ A Hoplon project designed to...well, that part is up to you.
     $ boot development
     ```
 
-2. Go to [http://localhost:8000][3] in your browser. You should see "Hello, World!".
+2. Go to [http://localhost:8000][3] in your browser. You should see the board.
 
-3. You're already done.
+3. You're black and you go first.
 
 ## License
 
-Copyright © 2014, **Your Name Goes Here**
+Copyright © 2015, **Bill Allen**
 
 [1]: https://github.com/tailrecursion/boot
 [2]: https://github.com/technomancy/leiningen
