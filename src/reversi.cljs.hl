@@ -1,8 +1,8 @@
 (ns reversi)
 
-(def emp '.)
-(def black 'b)
-(def white 'w)
+(def emp " ")
+(def black "\u25CF")
+(def white "\u25CB")
 
 (def find-legal-moves
   (fn [d p]

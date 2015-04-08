@@ -35,7 +35,7 @@
 (defn play! [[i j] c]
   (let [lm (r/find-legal-moves @game c)
         s [i j]
-        p (if (= c r/black) r/white 'b)]
+        p (if (= c r/black) r/white r/black)]
     (do
       (if (not (empty? lm))
         (swap! game r/update-board (cons s (get lm s)) c))
@@ -54,7 +54,7 @@
    (table :class "reversi"
           (loop-tpl :bindings [[i row] (cell= (indexed game))]
                     ( tr (loop-tpl :bindings [[j x] (cell= (indexed row))]
-                                   (td :on-click #(play! [@i @j] 'b) (text "~{x}"))))))
+                                   (td :on-click #(play! [@i @j] r/black) (text "~{x}"))))))
    (button :on-click reset-game! "new game")
    (table :class "reversi" (tr (td "white") (td (text "~{whitescore}")) (td "black") (td (text "~{blackscore}"))))
    ))
