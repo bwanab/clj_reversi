@@ -20,6 +20,8 @@ A Hoplon project designed to play a simple game of reversi
 
 3. You're black and you go first.
 
+or, you can play it here: http://bwanab.github.io/
+
 ## License
 
 Copyright © 2015, **Bill Allen**
