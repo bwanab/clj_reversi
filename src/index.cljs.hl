@@ -2,7 +2,7 @@
       (:require [reversi :as r]
                 [goog.async.Delay :as delay]))
 
-(def boardsize 8)
+(def boardsize 4)
 (def new-game (let [g (vec (for [i (range boardsize)] (vec (for [j (range boardsize)] r/emp))))
                    m (dec (/ boardsize 2))
                    b [[[0 0] r/black] [[1 1] r/black] [[0 1] r/white] [[1 0] r/white]]]
@@ -14,8 +14,15 @@
 (defc game (copy-game))
 (defc whitescore 2)
 (defc blackscore 2)
+(defc over "")
+(defc noblackmove "")
 
 (def indexed (partial map-indexed vector))
+
+(defn game-over []
+  (reset! over (cond (< @whitescore @blackscore) "White wins!"
+                     (< @blackscore @whitescore) "Black wins!"
+                     :else "Tie game!")))
 
 (defn reset-game! []
   (reset! game (copy-game)))
@@ -23,18 +30,28 @@
 (defn play! [[i j] c]
   (let [lm (r/find-legal-moves @game c)
         s [i j]
+        m (get lm s)
         p (if (= c r/black) r/white r/black)]
     (do
       (if (not (empty? lm))
-        (swap! game r/update-board (cons s (get lm s)) c))
+        (if (not (nil? m))
+          (do
+            (reset! noblackmove "")
+            (swap! game r/update-board (cons s m) c))
+          (reset! noblackmove "No black move, white moves if possible")))
       (.start (goog.async.Delay.
                (fn [] (do
-                  (let [m (r/find-legal-moves @game p)]
-                    (if (not (empty? m))
-                      (let [fm (first (r/find-best-move @game m))]
-                        (swap! game r/update-board (cons fm (get m fm)) p))))
-                  (reset! whitescore (count (filter #(= % r/white) (flatten @game))))
-                  (reset! blackscore (count (filter #(= % r/black) (flatten @game))))))
+                       (let [mm (r/find-legal-moves @game p)]
+                         (if (not (empty? mm))
+                           (let [fm (first (r/find-best-move @game mm))]
+                             (swap! game r/update-board (cons fm (get mm fm)) p))
+                           (if (empty lm)
+                             (game-over))))
+
+                       (reset! whitescore (count (filter #(= % r/white) (flatten @game))))
+                       (reset! blackscore (count (filter #(= % r/black) (flatten @game))))
+                       (if (= (+ @whitescore @blackscore) (* 2 boardsize))
+                         (game-over))))
                1000)))))
 
 (html
@@ -48,4 +65,6 @@
                                    (td :on-click #(play! [@i @j] r/black) (text "~{x}"))))))
    (button :on-click reset-game! "new game")
    (table :class "reversi" (tr (td "white") (td (text "~{whitescore}")) (td "black") (td (text "~{blackscore}"))))
+   (p (text "~{over}"))
+   (p (text "~{noblackmove}"))
    ))
