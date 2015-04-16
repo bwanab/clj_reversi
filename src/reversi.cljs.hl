@@ -32,17 +32,22 @@
                       (= n mp) (recur [(+ sr ir) (+ sc ic)] (cons [sr sc] a))
                       (= n p) [[sr1 sc1] (set a)]
                       :else [])))))]
-        (reduce (fn [m [k v]]
-                  (assoc m k (if (contains? m k)
-                               (set (concat (get m k) v))
-                               v)))
-                {}
-                (for [m (find-all-moves d p)
-                      :let [[[er ec] [lr lc]] m
-                            ir (- lr er)
-                            ic (- lc ec)
-                            a (find-line d [er ec] [ir ic] p)]
-                      :when (not (empty? a))] a ))))))
+        (let [answer
+              (reduce (fn [m [k v]]
+                        (assoc m k (if (contains? m k)
+                                     (set (concat (get m k) v))
+                                     v)))
+                      {}
+                      (for [m (find-all-moves d p)
+                            :let [[[er ec] [lr lc]] m
+                                  ir (- lr er)
+                                  ic (- lc ec)
+                                  a (find-line d [er ec] [ir ic] p)]
+                            :when (not (empty? a))] a ))]
+          (do
+            ;(println (if (= p black) "black moves" "white moves"))
+            ;(println answer)
+            answer))))))
 
 (defn printboard [d]
   (doseq [r d] (println r)))

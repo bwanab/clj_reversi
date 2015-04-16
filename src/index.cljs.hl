@@ -2,11 +2,11 @@
       (:require [reversi :as r]
                 [goog.async.Delay :as delay]))
 
-(def boardsize 4)
+(def boardsize 8)
 (def new-game (let [g (vec (for [i (range boardsize)] (vec (for [j (range boardsize)] r/emp))))
-                   m (dec (/ boardsize 2))
-                   b [[[0 0] r/black] [[1 1] r/black] [[0 1] r/white] [[1 0] r/white]]]
-               (reduce (fn [board [[r c] v]] (assoc-in board [(+ r m) (+ c m)] v)) g b)))
+                    m (dec (/ boardsize 2))
+                    b [[[0 0] r/black] [[1 1] r/black] [[0 1] r/white] [[1 0] r/white]]]
+                (reduce (fn [board [[r c] v]] (assoc-in board [(+ r m) (+ c m)] v)) g b)))
 
 ;;(println newgame)
 
@@ -15,7 +15,6 @@
 (defc white-score 2)
 (defc black-score 2)
 (defc over "")
-(defc no-black-move "")
 
 (def indexed (partial map-indexed vector))
 
@@ -27,7 +26,6 @@
 
 (defn reset-game! []
   (reset! game (copy-game))
-  (reset! no-black-move "")
   (reset! over ""))
 
 (defn compute-score [c]
@@ -41,10 +39,7 @@
     (do
       (if (not (empty? lm))
         (if (not (nil? m))
-          (do
-            (reset! no-black-move "")
-            (swap! game r/update-board (cons s m) c)))
-        ;(reset! no-black-move "No black move, white moves if possible")
+          (swap! game r/update-board (cons s m) c))
         (js/alert "No black move, white moves if possible"))
       (.start (goog.async.Delay.
                (fn [] (do
@@ -58,7 +53,7 @@
                        (reset! white-score (compute-score r/white))
                        (reset! black-score (compute-score r/black))
                        (if (empty? @over)
-                         (if (= (+ @white-score @black-score) (* 2 boardsize))
+                         (if (= (+ @white-score @black-score) (* boardsize boardsize))
                            (game-over)
                            (if (empty? (r/find-legal-moves @game c))
                              (play! [0 0] r/black))))))
@@ -76,6 +71,5 @@
    (button :on-click reset-game! "new game")
    (table :class "reversi" (tr (td "white") (td (text "~{white-score}")) (td "black") (td (text "~{black-score}"))))
    (div :class "lead"
-        (p (text  "~{over}"))
-        (p (text  "~{no-black-move}")))
+        (p (text  "~{over}")))
    ))
