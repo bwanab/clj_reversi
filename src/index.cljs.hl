@@ -31,33 +31,36 @@
 (defn compute-score [c]
   (count (filter #(= % c) (flatten @game))))
 
-(defn play! [[i j] c]
+(defn play! [s c]
   (let [lm (r/find-legal-moves @game c)
-        s [i j]
         m (get lm s)
-        p (if (= c r/black) r/white r/black)]
+        p (if (= c r/black) r/white r/black)
+        moves-exist (not (empty? lm))
+        is-valid-move (not (nil? m))]
     (do
-      (if (not (empty? lm))
-        (if (not (nil? m))
+      (if moves-exist
+        (if is-valid-move
           (swap! game r/update-board (cons s m) c))
         (js/alert "No black move, white moves if possible"))
-      (.start (goog.async.Delay.
-               (fn [] (do
-                       (let [mm (r/find-legal-moves @game p)]
-                         (if (not (empty? mm))
-                           (let [fm (first (r/find-best-move @game mm))]
-                             (swap! game r/update-board (cons fm (get mm fm)) p))
-                           (if (empty? lm)
-                             (game-over))))
+      (if (or (not moves-exist)
+              (and moves-exist is-valid-move))
+        (.start (goog.async.Delay.
+                 (fn [] (do
+                         (let [mm (r/find-legal-moves @game p)]
+                           (if (not (empty? mm))
+                             (let [fm (first (r/find-best-move @game mm))]
+                               (swap! game r/update-board (cons fm (get mm fm)) p))
+                             (if (not moves-exist)
+                               (game-over))))
 
-                       (reset! white-score (compute-score r/white))
-                       (reset! black-score (compute-score r/black))
-                       (if (empty? @over)
-                         (if (= (+ @white-score @black-score) (* boardsize boardsize))
-                           (game-over)
-                           (if (empty? (r/find-legal-moves @game c))
-                             (play! [0 0] r/black))))))
-               1000)))))
+                         (reset! white-score (compute-score r/white))
+                         (reset! black-score (compute-score r/black))
+                         (if (empty? @over)
+                           (if (= (+ @white-score @black-score) (* boardsize boardsize))
+                             (game-over)
+                             (if (empty? (r/find-legal-moves @game c))
+                               (play! [0 0] r/black))))))
+                 1000))))))
 
 (html
  (head
