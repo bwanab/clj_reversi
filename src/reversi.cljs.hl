@@ -57,11 +57,14 @@
   ;; (println m)
   (reduce (fn [dd e] (assoc-in dd e p)) d m))
 
-(defn score [d [[r c] v]]
+(defn score
+  "count the number of opponent pieces flipped add 2 for a corner place"
+  [d [[r c] v]]
   (let [s (count d)]
-    [(+ (count v) (if (or (and (= r 0) (or (= c 0) (= c (dec s))))
-                         (and (= r (dec s)) (or (= c 0) (= c (dec s)))))
-                   2 0)) [[r c] v]]))
+    [(+ (count v)
+        (if (or (and (= r 0) (or (= c 0) (= c (dec s))))
+                (and (= r (dec s)) (or (= c 0) (= c (dec s)))))
+          2 0)) [[r c] v]]))
 
 (defn find-best-move [d m]
   (let [s (map #(score d %) m)]

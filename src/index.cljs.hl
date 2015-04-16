@@ -31,6 +31,26 @@
 (defn compute-score [c]
   (count (filter #(= % c) (flatten @game))))
 
+(defn computer-play! [moves-exist p c]
+  (.start
+   (goog.async.Delay.
+    (fn [] (do
+            (let [mm (r/find-legal-moves @game p)]
+              (if (not (empty? mm))
+                (let [fm (first (r/find-best-move @game mm))]
+                  (swap! game r/update-board (cons fm (get mm fm)) p))
+                (if (not moves-exist)
+                  (game-over))))
+
+            (reset! white-score (compute-score r/white))
+            (reset! black-score (compute-score r/black))
+            (if (empty? @over)
+              (if (= (+ @white-score @black-score) (* boardsize boardsize))
+                (game-over)
+                (if (empty? (r/find-legal-moves @game c))
+                  (play! [0 0] r/black))))))
+    1000)))
+
 (defn play! [s c]
   (let [lm (r/find-legal-moves @game c)
         m (get lm s)
@@ -40,27 +60,12 @@
     (do
       (if moves-exist
         (if is-valid-move
-          (swap! game r/update-board (cons s m) c))
-        (js/alert "No black move, white moves if possible"))
-      (if (or (not moves-exist)
-              (and moves-exist is-valid-move))
-        (.start (goog.async.Delay.
-                 (fn [] (do
-                         (let [mm (r/find-legal-moves @game p)]
-                           (if (not (empty? mm))
-                             (let [fm (first (r/find-best-move @game mm))]
-                               (swap! game r/update-board (cons fm (get mm fm)) p))
-                             (if (not moves-exist)
-                               (game-over))))
-
-                         (reset! white-score (compute-score r/white))
-                         (reset! black-score (compute-score r/black))
-                         (if (empty? @over)
-                           (if (= (+ @white-score @black-score) (* boardsize boardsize))
-                             (game-over)
-                             (if (empty? (r/find-legal-moves @game c))
-                               (play! [0 0] r/black))))))
-                 1000))))))
+          (do
+            (swap! game r/update-board (cons s m) c)
+            (computer-play! moves-exist p c)))
+        (do
+          (js/alert "No black move, white moves if possible")
+          (computer-play moves-exist p c))))))
 
 (html
  (head
