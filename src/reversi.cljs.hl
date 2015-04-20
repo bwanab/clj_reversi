@@ -88,5 +88,8 @@
 
 (defn find-best-move [d m opponent]
   (println "find-best-move")
-  (let [s (map #(score d % opponent) m)]
-    (->> s (sort #(compare (first %2) (first %1))) first second)))
+  (let [s (->> (map #(score d % opponent) m)
+               (sort #(compare (first %2) (first %1))))]
+    (if (not (empty? s))
+      (let [ss (take-while #(= (first %) (ffirst s)) s)]
+        (first (second (nth ss (rand-int (count ss)))))))))
