@@ -76,13 +76,14 @@
  (head
   (link :href "css/bootstrap.css" :rel "stylesheet")
   (link :href "css/screen.css" :rel "stylesheet"))
-  (body
-   (table :class "reversi"
-          (loop-tpl :bindings [[i row] (cell= (indexed game))]
-                    ( tr (loop-tpl :bindings [[j x] (cell= (indexed row))]
-                                   (td :on-click #(play! [@i @j] r/black) (text "~{x}"))))))
-   (button :on-click reset-game! "new game")
-   (table :class "reversi" (tr (td "white") (td (text "~{white-score}")) (td "black") (td (text "~{black-score}"))))
-   (div :class "lead"
-        (p (text  "~{over}")))
-   ))
+  (div :class "wrapper"
+       (div :class "main"
+            (table :class "reversi"
+                   (loop-tpl :bindings [[i row] (cell= (indexed game))]
+                             ( tr (loop-tpl :bindings [[j x] (cell= (indexed row))]
+                                            (td :on-click #(play! [@i @j] r/black) (text "~{x}")))))))
+       (div :class "aside-2"
+            (button :on-click reset-game! "new game")
+            (table :class "reversi" (tr (td "white") (td (text "~{white-score}")) (td "black") (td (text "~{black-score}")))))
+       (div :class "footer"
+            (p (text  "~{over}")))))
