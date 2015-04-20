@@ -47,7 +47,7 @@
                                                                {:run run
                                                                 :inc i
                                                                 :pre (get-in d (vec (map - k i)))
-                                                                :post (get-in d (vec (map + (last run) i)))})) v)}]))]
+                                                                :post (get-in d (vec (map + (map + (last run) i) i)))})) v)}]))]
       (do
         ;;(println (if (= p black) "black moves" "white moves"))
         ;;(println answer)
@@ -66,14 +66,27 @@
 
 (defn score
   "count the number of opponent pieces flipped add 1 for each edge piece is on"
-  [d [[r c] v1]]
+  [d [[r c] v1] opponent]
   (let [s (dec (count d))
-        v (get-flips v1)]
-    [(+ (count v)
-        (if (or (= r 0) (= r s))  1 0)
-        (if (or (= c 0) (= c s))  1 0))
-     [[r c] v]]))
+        v (get-flips v1)
+        base-score (+ (count v)
+                      (if (or (= r 0) (= r s))  1 0)
+                      (if (or (= c 0) (= c s))  1 0))
+        score (- base-score (let [a (-> v1 :runs (nth 0) :pre)
+                                  b (-> v1 :runs (nth 0) :post)]
+                              (do
+                                ;;(println a b opponent)
+                                (if (or (and (= a opponent) (= b emp))
+                                        (and (= b opponent) (= a emp)))
+                                  (count v)
+                                  0))))]
+    (do
+      (println "[r c] = " [r c] " v1 = " v1)
+      (println score base-score)
+      [score
+       [[r c] v]])))
 
-(defn find-best-move [d m]
-  (let [s (map #(score d %) m)]
+(defn find-best-move [d m opponent]
+  (println "find-best-move")
+  (let [s (map #(score d % opponent) m)]
     (->> s (sort #(compare (first %2) (first %1))) first second)))

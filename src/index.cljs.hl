@@ -38,10 +38,11 @@
    (goog.async.Delay.
     (fn [] (do
             (let [mm (r/find-legal-moves @game p)]
-              (do (println "mm = " mm)
+              (do
                 (if (not (empty? mm))
-                  (let [[fm bm] (r/find-best-move @game mm)]
-                    (swap! game r/update-board (cons fm bm) p))
+                  (let [[fm bm] (r/find-best-move @game mm c)]
+                    (do (println "white picks " fm)
+                      (swap! game r/update-board (cons fm bm) p)))
                   (if (not moves-exist)
                     (game-over)))))
 
