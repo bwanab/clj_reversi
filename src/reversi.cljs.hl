@@ -92,4 +92,4 @@
                (sort #(compare (first %2) (first %1))))]
     (if (not (empty? s))
       (let [ss (take-while #(= (first %) (ffirst s)) s)]
-        (first (second (nth ss (rand-int (count ss)))))))))
+        (second (nth ss (rand-int (count ss))))))))
