@@ -6,7 +6,8 @@
 
 (defn find-pieces-for-player [d p]
   (let [boardsize (count d)
-        a (for [r (range boardsize)] (for [c (range boardsize) :when (= (get-in d [r c]) p)] [r c]))]
+        a (for [r (range boardsize)]
+            (for [c (range boardsize) :when (= (get-in d [r c]) p)] [r c]))]
     (->> a flatten (partition 2))))
 (defn find-adj [d [r c]]
   (let [boardsize (count d)
@@ -42,12 +43,15 @@
                               a (find-line d [er ec] [ir ic] p)]
                         :when (not (empty? a))] [a [ir ic]] )
           amm (group-by ffirst am)
-          answer (into {}  (for [[k v] amm] [k {:runs (map (fn [[a i]]
-                                                             (let [run (second a)]
-                                                               {:run run
-                                                                :inc i
-                                                                :pre (get-in d (vec (map - k i)))
-                                                                :post (get-in d (vec (map + (map + (last run) i) i)))})) v)}]))]
+          answer (into {}
+                       (for [[k v] amm]
+                         [k {:runs
+                             (map (fn [[a i]]
+                                    (let [run (second a)]
+                                      {:run run
+                                       :inc i
+                                       :pre (get-in d (vec (map - k i)))
+                                       :post (get-in d (vec (map + (map + (last run) i) i)))})) v)}]))]
       (do
         ;;(println (if (= p black) "black moves" "white moves"))
         ;;(println answer)
@@ -64,31 +68,43 @@
   ;; (println m)
   (reduce (fn [dd e] (assoc-in dd e p)) d m))
 
+(defn other [player]
+  (if (= player black) white black))
+
+(declare find-best-move)
+
 (defn score
   "count the number of opponent pieces flipped add 1 for each edge piece is on"
-  [d [[r c] v1] opponent]
+  [d [[r c] v1] opponent lookahead]
   (let [s (dec (count d))
         v (get-flips v1)
-        base-score (+ (count v)
-                      (if (or (= r 0) (= r s))  1 0)
-                      (if (or (= c 0) (= c s))  1 0))
-        score (- base-score (let [a (-> v1 :runs (nth 0) :pre)
-                                  b (-> v1 :runs (nth 0) :post)]
-                              (do
-                                ;;(println a b opponent)
-                                (if (or (and (= a opponent) (= b emp))
-                                        (and (= b opponent) (= a emp)))
-                                  (count v)
-                                  0))))]
+        score (+ (count v) ; a point for each opponent flipped
+                 (if (or (= r 0) (= r s))  1 0) ; a point for each edge occupied
+                 (if (or (= c 0) (= c s))  1 0)
+                 ;; (- (let [a (-> v1 :runs (nth 0) :pre)  ; subtract points for giving an open run.
+                 ;;          b (-> v1 :runs (nth 0) :post)]
+                 ;;      (do
+                 ;;        ;;(println a b opponent)
+                 ;;        (if (or (and (= a opponent) (= b emp))
+                 ;;                (and (= b opponent) (= a emp)))
+                 ;;          (count v)
+                 ;;          0))))
+                 (- (if (> lookahead 0)
+                      (let [dd (update-board d (cons [r c] v) (other opponent))
+                            m (find-legal-moves dd opponent)]
+                        (if (not (empty? dd))
+                          (let [[m flips] (find-best-move dd m (other opponent) (dec lookahead))]
+                            (+ 1 (count flips)))
+                          0))
+                      0)))]
     (do
-      (println "[r c] = " [r c] " v1 = " v1)
-      (println score base-score)
+      (println "[r c] = " [r c] " v1 = " v1 " score = " score)
       [score
        [[r c] v]])))
 
-(defn find-best-move [d m opponent]
+(defn find-best-move [d m opponent lookahead]
   (println "find-best-move")
-  (let [s (->> (map #(score d % opponent) m)
+  (let [s (->> (map #(score d % opponent lookahead) m)
                (sort #(compare (first %2) (first %1))))]
     (if (not (empty? s))
       (let [ss (take-while #(= (first %) (ffirst s)) s)]

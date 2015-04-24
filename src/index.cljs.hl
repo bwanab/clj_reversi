@@ -3,6 +3,7 @@
                 [goog.async.Delay :as delay]))
 
 (def boardsize 8)
+(def num-lookaheads 1)
 (def new-game (let [g (vec (for [i (range boardsize)] (vec (for [j (range boardsize)] r/emp))))
                     m (dec (/ boardsize 2))
                     b [[[0 0] r/black] [[1 1] r/black] [[0 1] r/white] [[1 0] r/white]]]
@@ -40,7 +41,7 @@
             (let [mm (r/find-legal-moves @game p)]
               (do
                 (if (not (empty? mm))
-                  (let [[fm bm] (r/find-best-move @game mm c)]
+                  (let [[fm bm] (r/find-best-move @game mm c num-lookaheads)]
                     (do (println "white picks " fm)
                       (swap! game r/update-board (cons fm bm) p)))
                   (if (not moves-exist)
