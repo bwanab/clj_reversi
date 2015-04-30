@@ -81,14 +81,7 @@
         score (+ (count v) ; a point for each opponent flipped
                  (if (or (= r 0) (= r s))  1 0) ; a point for each edge occupied
                  (if (or (= c 0) (= c s))  1 0)
-                 ;; (- (let [a (-> v1 :runs (nth 0) :pre)  ; subtract points for giving an open run.
-                 ;;          b (-> v1 :runs (nth 0) :post)]
-                 ;;      (do
-                 ;;        ;;(println a b opponent)
-                 ;;        (if (or (and (= a opponent) (= b emp))
-                 ;;                (and (= b opponent) (= a emp)))
-                 ;;          (count v)
-                 ;;          0))))
+                 ;; here we'll either lookahead or if at lookahead terminus, do the ends-rule
                  (- (if (> lookahead 0)
                       (let [dd (update-board d (cons [r c] v) (other opponent))
                             m (find-legal-moves dd opponent)]
@@ -96,7 +89,14 @@
                           (let [[m flips] (find-best-move dd m (other opponent) (dec lookahead))]
                             (+ 1 (count flips)))
                           0))
-                      0)))]
+                      (- (let [a (-> v1 :runs (nth 0) :pre)  ; subtract points for giving an open run.
+                               b (-> v1 :runs (nth 0) :post)]
+                           (do
+                             ;;(println a b opponent)
+                             (if (or (and (= a opponent) (= b emp))
+                                     (and (= b opponent) (= a emp)))
+                               (count v)
+                               0)))))))]
     (do
       (println "[r c] = " [r c] " v1 = " v1 " score = " score)
       [score
