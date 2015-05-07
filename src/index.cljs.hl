@@ -3,15 +3,11 @@
                 [goog.async.Delay :as delay]))
 
 (def boardsize 8)
-(def num-lookaheads 2)
-(def new-game (let [g (vec (for [i (range boardsize)] (vec (for [j (range boardsize)] r/emp))))
-                    m (dec (/ boardsize 2))
-                    b [[[0 0] r/black] [[1 1] r/black] [[0 1] r/white] [[1 0] r/white]]]
-                (reduce (fn [board [[r c] v]] (assoc-in board [(+ r m) (+ c m)] v)) g b)))
+(def num-lookaheads 1)
 
 ;;(println newgame)
 
-(defn copy-game [] (vec (for [row new-game] (vec (for [c row] c)))))
+(defn copy-game [] (vec (for [row (r/new-game boardsize)] (vec (for [c row] c)))))
 (defc game (copy-game))
 (defc white-score 2)
 (defc black-score 2)
@@ -30,7 +26,7 @@
   (reset! over ""))
 
 (defn compute-score [c]
-  (count (filter #(= % c) (flatten @game))))
+  (r/compute-score c @game))
 
 (declare play!)
 

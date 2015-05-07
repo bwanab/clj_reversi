@@ -1,8 +1,17 @@
 (ns reversi)
 
-(def emp " ")
 (def black "\u25CF")
 (def white "\u25CB")
+(def emp " ")
+;; convenient settings for debugging:
+;;(def black "b")
+;;(def white "w")
+
+(defn new-game [boardsize]
+  (let [g (vec (for [i (range boardsize)] (vec (for [j (range boardsize)] emp))))
+        m (dec (/ boardsize 2))
+        b [[[0 0] black] [[1 1] black] [[0 1] white] [[1 0] white]]]
+    (reduce (fn [board [[r c] v]] (assoc-in board [(+ r m) (+ c m)] v)) g b)))
 
 (defn find-pieces-for-player [d p]
   (let [boardsize (count d)
@@ -98,14 +107,37 @@
                                (count v)
                                0)))))))]
     (do
-      (println "[r c] = " [r c] " v1 = " v1 " score = " score)
+      ;;(if (= 0 lookahead) (println "[r c] = " [r c] " v1 = " v1 " score = " score))
       [score
        [[r c] v]])))
 
 (defn find-best-move [d m opponent lookahead]
-  (println "find-best-move")
+  ;;(println "find-best-move")
   (let [s (->> (map #(score d % opponent lookahead) m)
                (sort #(compare (first %2) (first %1))))]
     (if (not (empty? s))
       (let [ss (take-while #(= (first %) (ffirst s)) s)]
         (second (nth ss (rand-int (count ss))))))))
+
+(defn compute-score [c game]
+  (count (filter #(= % c) (flatten game))))
+
+(defn game-over [g]
+  ;;(str "white: " (compute-score white g) " black: " (compute-score black g))
+  (if (> (compute-score white g) (compute-score black g)) "white" "black"))
+
+(defn play-game [p1 p1la p2 p2la g in-moves-exist]
+  ;;(printboard g)
+  (let [lm (find-legal-moves g p1)
+        moves-exist (not (empty? lm))]
+    (if moves-exist
+      (let [[fm bm] (find-best-move g lm p2 p1la)]
+        (do
+          ;;(println p1 " chose " fm)
+          (recur p2 p2la p1 p1la (update-board g (cons fm bm) p1) true)))
+      (if in-moves-exist
+        (recur p2 p2la p1 p1la g false)
+        (game-over g)))))
+
+(defn play-two []
+  (play-game black 0 white 2 (new-game 8) true))
