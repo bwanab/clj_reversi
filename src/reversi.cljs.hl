@@ -140,4 +140,4 @@
         (game-over g)))))
 
 (defn play-two []
-  (play-game black 0 white 2 (new-game 8) true))
+  (play-game black 1 white 2 (new-game 8) true))
